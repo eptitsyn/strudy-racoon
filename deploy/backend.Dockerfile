@@ -45,11 +45,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH" \
     HF_HOME=/app/.cache/huggingface \
-    MODELS_CONFIG_PATH=/app/models.yaml \
-    # Llama weights are baked into the image cache below, so run fully offline:
-    # no HF network calls, no token needed at runtime.
-    HF_HUB_OFFLINE=1 \
-    TRANSFORMERS_OFFLINE=1
+    MODELS_CONFIG_PATH=/app/models.yaml
+    # NOT forcing HF offline: the Llama weights are baked into the image cache
+    # below and are used when present (no network), but if a model's weights are
+    # missing from the cache transformers will download them from the Hub. Gated
+    # repos (e.g. meta-llama) then need HF_TOKEN supplied at runtime — pass it via
+    # docker-compose `environment` rather than baking it into the image.
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \

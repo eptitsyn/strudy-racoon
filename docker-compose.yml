@@ -17,6 +17,9 @@ services:
       DETECTOR_MAX_PARALLEL: ${DETECTOR_MAX_PARALLEL:-4}
       DETECTOR_QUEUE_TIMEOUT_S: ${DETECTOR_QUEUE_TIMEOUT_S:-10}
       HF_HOME: /app/.cache/huggingface
+      # Token for downloading gated repos (e.g. meta-llama) on a cache miss.
+      # Optional: leave empty if all required weights are already baked in.
+      HF_TOKEN: ${HF_TOKEN:-}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
