@@ -43,14 +43,26 @@ dev = [
     "types-PyYAML>=6.0",
 ]
 
-# Force the CPU build of torch. On linux/aarch64 the default PyPI wheel is the
-# NVIDIA-Grace CUDA build (pulls cuda-toolkit, NVPL BLAS) which on non-NVIDIA
-# ARM — e.g. M1 under Docker — runs the unvectorized DEFAULT CPU kernels and is
-# very slow. The cpu index ships oneDNN + Arm Compute Library + proper aarch64
-# vectorization. If a CUDA target is ever added, give it a sys_platform-marked
-# pytorch-cu index instead.
+# torch build selection, per platform:
+#   * linux/x86_64  -> CUDA 13 (cu130) wheels. The deploy server has CUDA 13;
+#     these wheels bundle their own CUDA runtime libs (cudart, cudnn, ...), so
+#     the slim base image works as long as the container gets host GPU access
+#     via the NVIDIA Container Toolkit (see docker-compose.yml `deploy.resources`).
+#   * everything else (macOS, linux/aarch64) -> CPU wheels. On linux/aarch64 the
+#     default PyPI wheel is the NVIDIA-Grace CUDA build (pulls cuda-toolkit, NVPL
+#     BLAS) which on non-NVIDIA ARM — e.g. M1 under Docker — runs the unvectorized
+#     DEFAULT CPU kernels and is very slow. The cpu index ships oneDNN + Arm
+#     Compute Library + proper aarch64 vectorization. macOS has no CUDA wheels.
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu" }]
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
+    { index = "pytorch-cpu", marker = "sys_platform != 'linux' or platform_machine != 'x86_64'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

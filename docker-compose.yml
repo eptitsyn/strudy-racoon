@@ -22,6 +22,15 @@ services:
     volumes:
       # Mount the registry config so swapping models doesn't require a rebuild.
       - ./models.yaml:/app/models.yaml:ro
+    # GPU access: torch ships CUDA 13 wheels, the host has the NVIDIA driver +
+    # Container Toolkit. Requires `docker compose` (not legacy docker-compose).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
       interval: 15s
