@@ -25,6 +25,10 @@ models_cache/
 *.zip
 mage_*/
 
+# PAWN checkpoint (~4.6 GB). Not baked into the image; provided at runtime via
+# a bind-mounted volume (see docker-compose.yml). config.yaml stays in the image.
+detector/impl/pawn/model/pytorch_model.bin
+
 # Tests don't ship in production images
 tests/
 

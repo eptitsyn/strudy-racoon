@@ -25,6 +25,10 @@ services:
     volumes:
       # Mount the registry config so swapping models doesn't require a rebuild.
       - ./models.yaml:/app/models.yaml:ro
+      # PAWN model dir (config.yaml + the ~4.6 GB pytorch_model.bin) as a volume
+      # instead of baking the checkpoint into the image. Swap weights without a
+      # rebuild; fetch them on the host first (e.g. `git lfs pull`). Read-only.
+      - ${PAWN_MODEL_DIR:-./detector/impl/pawn/model}:/app/detector/impl/pawn/model:ro
     # GPU access: torch ships CUDA 13 wheels, the host has the NVIDIA driver +
     # Container Toolkit. Requires `docker compose` (not legacy docker-compose).
     deploy:
