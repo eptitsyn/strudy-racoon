@@ -1,0 +1,50 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: deploy/backend.Dockerfile
+      additional_contexts:
+        # Host HF cache; the Llama weights for the default `pawn` model are
+        # baked into the image from here at build time (see backend.Dockerfile).
+        hfcache: ${HF_CACHE_DIR:-${HOME}/.cache/huggingface}
+    image: ai-text-detector/backend:dev
+    container_name: detector-backend
+    environment:
+      APP_ENV: production
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_JSON: ${LOG_JSON:-true}
+      MODELS_CONFIG_PATH: /app/models.yaml
+      DETECTOR_MAX_PARALLEL: ${DETECTOR_MAX_PARALLEL:-4}
+      DETECTOR_QUEUE_TIMEOUT_S: ${DETECTOR_QUEUE_TIMEOUT_S:-10}
+      HF_HOME: /app/.cache/huggingface
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Mount the registry config so swapping models doesn't require a rebuild.
+      - ./models.yaml:/app/models.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: .
+      dockerfile: deploy/bot.Dockerfile
+    image: ai-text-detector/bot:dev
+    container_name: detector-bot
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LOG_JSON: ${LOG_JSON:-true}
+      BOT_TOKEN: ${BOT_TOKEN:?BOT_TOKEN is required}
+      BACKEND_BASE_URL: http://backend:8000
+      BACKEND_TIMEOUT_READ: ${BACKEND_TIMEOUT_READ:-30}
+      BACKEND_RETRIES: ${BACKEND_RETRIES:-3}
+      BOT_MODE: polling
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

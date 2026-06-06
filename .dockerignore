@@ -1,0 +1,35 @@
+# Keep image layers small and reproducible.
+.git
+.github
+.venv
+__pycache__
+*.py[oc]
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov/
+.idea
+.vscode
+*.swp
+.DS_Store
+
+# Local data that should never end up baked into images
+.env
+.env.*
+!.env.example
+.cache/
+models_cache/
+
+# Training/eval artifacts — large, never needed in the runtime image
+*.zip
+mage_*/
+
+# Tests don't ship in production images
+tests/
+
+# Build artifacts
+build/
+dist/
+wheels/
+*.egg-info

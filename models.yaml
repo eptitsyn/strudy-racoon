@@ -1,0 +1,18 @@
+default: pawn
+
+models:
+  - name: pawn
+    impl: pawn
+    params:
+      version: "pawn-llama-1b"
+
+  - name: stub
+    impl: stub
+    params:
+      version: "0.1.0"
+
+  - name: stub-biased-ai
+    impl: stub
+    params:
+      bias: 0.3
+      version: "0.1.0"
