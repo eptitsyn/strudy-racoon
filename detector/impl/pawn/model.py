@@ -6,15 +6,16 @@ from extract_features import FeatureExtractor
 from mlp import MLP
 from configs import ModelConfig
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from transformers import AutoConfig
 
 
-try:
-    ENV_CONFIG = dotenv_values(".env")
-    HF_TOKEN = ENV_CONFIG.get("HF_TOKEN")
-except:
-    HF_TOKEN = None
+# Load a local .env (for dev runs) without clobbering vars already exported into
+# the process — in the container HF_TOKEN is injected via docker-compose and
+# there is no .env file. Read the token from the environment so HF downloads of
+# gated repos (e.g. meta-llama) work both locally and in the container.
+load_dotenv()
+HF_TOKEN = os.environ.get("HF_TOKEN") or None
 
 
 class PAWN(nn.Module):
