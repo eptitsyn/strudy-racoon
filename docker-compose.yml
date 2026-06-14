@@ -3,10 +3,6 @@ services:
     build:
       context: .
       dockerfile: deploy/backend.Dockerfile
-      additional_contexts:
-        # Host HF cache; the Llama weights for the default `pawn` model are
-        # baked into the image from here at build time (see backend.Dockerfile).
-        hfcache: ${HF_CACHE_DIR:-${HOME}/.cache/huggingface}
     image: ai-text-detector/backend:dev
     container_name: detector-backend
     environment:
@@ -29,6 +25,9 @@ services:
       # instead of baking the checkpoint into the image. Swap weights without a
       # rebuild; fetch them on the host first (e.g. `git lfs pull`). Read-only.
       - ${PAWN_MODEL_DIR:-./detector/impl/pawn/model}:/app/detector/impl/pawn/model:ro
+      # Persist HF downloads (the pawn model's Llama weights, fetched on first
+      # load) so they survive container recreation instead of re-downloading.
+      - hf-cache:/app/.cache/huggingface
     # GPU access: torch ships CUDA 13 wheels, the host has the NVIDIA driver +
     # Container Toolkit. Requires `docker compose` (not legacy docker-compose).
     # deploy:
@@ -64,3 +63,8 @@ services:
       backend:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  # HF cache for the backend; holds the pawn model's Llama weights downloaded
+  # from the Hub on first load.
+  hf-cache:

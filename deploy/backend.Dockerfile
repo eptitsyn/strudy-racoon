@@ -64,17 +64,11 @@ WORKDIR /app
 
 COPY --from=builder --chown=app:app /app /app
 
-# Bake the Llama weights into the image's HF cache so the `pawn` model loads
-# offline with no runtime download. The `hfcache` build context points at the
-# host's ~/.cache/huggingface (see docker-compose.yml `additional_contexts`).
-# Directory COPY preserves the blobs/ + relative snapshot symlinks intact.
+# HF cache dir for the `pawn` model's Llama weights. Not baked into the image:
+# transformers downloads them from the Hub on first load (gated meta-llama repos
+# need HF_TOKEN, supplied via docker-compose). Mount this path as a volume so the
+# download persists across container recreations (see docker-compose.yml).
 RUN mkdir -p /app/.cache/huggingface/hub && chown -R app:app /app/.cache
-COPY --from=hfcache --chown=app:app \
-    hub/models--meta-llama--Llama-3.2-1B/ \
-    /app/.cache/huggingface/hub/models--meta-llama--Llama-3.2-1B/
-COPY --from=hfcache --chown=app:app \
-    hub/models--meta-llama--Llama-3.2-1B-Instruct/ \
-    /app/.cache/huggingface/hub/models--meta-llama--Llama-3.2-1B-Instruct/
 
 USER app
 
