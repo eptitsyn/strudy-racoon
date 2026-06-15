@@ -14,9 +14,6 @@ class BotSettings(BaseSettings):
     )
 
     bot_token: str = Field(min_length=1)
-    # Base URL of a self-hosted Telegram Bot API server. When unset the bot uses
-    # the public api.telegram.org; when set, requests route through this server.
-    telegram_api_url: str | None = Field(default=None)
     backend_base_url: str = Field(default="http://localhost:8000")
     backend_timeout_connect_s: float = Field(default=5.0, ge=0.1)
     backend_timeout_read_s: float = Field(default=30.0, ge=0.1)

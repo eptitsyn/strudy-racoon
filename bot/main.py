@@ -4,8 +4,6 @@ import asyncio
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
-from aiogram.client.session.aiohttp import AiohttpSession
-from aiogram.client.telegram import TelegramAPIServer
 
 from backend.logging_config import configure_logging, get_logger
 from bot.handlers import build_router
@@ -18,18 +16,8 @@ async def run() -> None:
     configure_logging(settings.log_level, json=settings.log_json)
     log = get_logger("bot.main")
 
-    # Route through a self-hosted Bot API server when configured, otherwise
-    # aiogram defaults to api.telegram.org.
-    session: AiohttpSession | None = None
-    if settings.telegram_api_url:
-        session = AiohttpSession(
-            api=TelegramAPIServer.from_base(settings.telegram_api_url)
-        )
-        log.info("telegram_api_server", url=settings.telegram_api_url)
-
     bot = Bot(
         token=settings.bot_token,
-        session=session,
         default=DefaultBotProperties(parse_mode=None),
     )
 

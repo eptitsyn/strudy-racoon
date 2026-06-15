@@ -67,12 +67,28 @@ export BOT_TOKEN=...
 uv run python -m bot.main
 ```
 
+## 🖱️ Streamlit UI
+
+Веб-интерфейс для ручной проверки: выбрать модель, вставить текст,
+получить вердикт «человек / ИИ».
+
+```bash
+uv run --extra ui streamlit run ui/app.py
+```
+
+Откроется на <http://localhost:8501>. Backend-адрес берётся из
+`BACKEND_BASE_URL` (по умолчанию `http://localhost:8000`) и его можно
+поменять в сайдбаре. Выбор модели, отличной от активной, сначала дёргает
+`POST /v1/models/switch`, затем `POST /v1/detect`.
+
 ## 🐳 Запуск через Docker
 
 В `deploy/` лежат два образа:
 
 - 🚀 `backend.Dockerfile` — FastAPI + `ml`-extra (torch, transformers).
 - 💬 `bot.Dockerfile` — лёгкий, без torch.
+- 🖱️ `ui.Dockerfile` — Streamlit UI (`ui`-extra), без torch. Поднимается на
+  хост-порту **80** (внутри контейнера слушает 8501; меняется через `UI_PORT`).
 
 ```bash
 # 🔑 Положи реальный токен бота

@@ -32,6 +32,10 @@ ml = [
     "pyyaml>=6.0.2",
     "python-dotenv>=1.0",
 ]
+ui = [
+    "streamlit>=1.40",
+    "httpx>=0.28.1",
+]
 
 [dependency-groups]
 dev = [

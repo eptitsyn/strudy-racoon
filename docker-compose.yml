@@ -45,26 +45,21 @@ services:
       start_period: 120s
     restart: unless-stopped
 
-  # Self-hosted Telegram Bot API server (tdlib-based). It connects to Telegram's
-  # data centers over MTProto itself, so the bot reaches Telegram through this
-  # server instead of api.telegram.org. Needs TELEGRAM_API_ID/HASH from
-  # https://my.telegram.org (distinct from the bot token).
-  telegram-bot-api:
-    image: aiogram/telegram-bot-api:latest
-    container_name: detector-telegram-bot-api
+  ui:
+    build:
+      context: .
+      dockerfile: deploy/ui.Dockerfile
+    image: ai-text-detector/ui:dev
+    container_name: detector-ui
     environment:
-      TELEGRAM_API_ID: ${TELEGRAM_API_ID:?TELEGRAM_API_ID is required}
-      TELEGRAM_API_HASH: ${TELEGRAM_API_HASH:?TELEGRAM_API_HASH is required}
-      # Enable local mode so large up/downloads are served from disk.
-      TELEGRAM_LOCAL: "true"
-    volumes:
-      - telegram-bot-api-data:/var/lib/telegram-bot-api
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8081/"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
+      # Reach the backend over the compose network, not localhost.
+      BACKEND_BASE_URL: http://backend:8000
+    ports:
+      # Serve the Streamlit UI on host port 80 (container listens on 8501).
+      - "${UI_PORT:-80}:8501"
+    depends_on:
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
   bot:
@@ -81,12 +76,8 @@ services:
       BACKEND_TIMEOUT_READ: ${BACKEND_TIMEOUT_READ:-30}
       BACKEND_RETRIES: ${BACKEND_RETRIES:-3}
       BOT_MODE: polling
-      # Route Bot API calls through the local server instead of api.telegram.org.
-      TELEGRAM_API_URL: http://telegram-bot-api:8081
     depends_on:
       backend:
-        condition: service_healthy
-      telegram-bot-api:
         condition: service_healthy
     restart: unless-stopped
 
@@ -94,5 +85,3 @@ volumes:
   # HF cache for the backend; holds the pawn model's Llama weights downloaded
   # from the Hub on first load.
   hf-cache:
-  # Working dir for the local Telegram Bot API server (sessions + file storage).
-  telegram-bot-api-data:
