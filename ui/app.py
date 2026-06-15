@@ -114,7 +114,10 @@ text = st.text_area(
 )
 st.caption(f"{len(text)} / {MAX_INPUT_CHARS} characters")
 
-if st.button("Analyze", type="primary", disabled=not text.strip()):
+if st.button("Analyze", type="primary"):
+    if not text.strip():
+        st.warning("Please enter some text to analyze.")
+        st.stop()
     try:
         if selected != st.session_state.get("active_model"):
             with st.spinner(f"Switching to model '{selected}'…"):
